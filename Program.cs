@@ -1,60 +1,53 @@
-using Swashbuckle.AspNetCore.SwaggerUI;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using DarajaDemo.Data;
+using DarajaDemo.Hubs;
+using DarajaDemo.Models.Config;
+using DarajaDemo.Services.Implementations;
+using DarajaDemo.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =========================================================
-// 1. ADD SERVICES (Dependency Injection)
-// This tells the app, "Hey, I have controllers in this project.
-// Please find them and make them ready to use."
-// =========================================================
-builder.Services.AddControllers();
+// 1. Configuration Binding
+builder.Services.Configure<DarajaSettings>(builder.Configuration.GetSection("Daraja"));
 
-// =========================================================
-// 1b. NAMED HTTP CLIENT FOR DARAJA
-// Beginners often write "new HttpClient()" inside a controller.
-// That is a common .NET bug: it leaks TCP sockets under load
-// ("socket exhaustion"). The fix is to let the framework manage
-// one shared, pooled HttpClient for us via IHttpClientFactory.
-// We just ask for it by name ("Daraja") wherever we need it.
-// =========================================================
+// 2. Database Setup (PostgreSQL)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 3. Caching & Real-time
+builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
+
+// 4. HTTP Clients & Services
 builder.Services.AddHttpClient("Daraja");
+builder.Services.AddScoped<IMpesaService, MpesaService>();
 
-// =========================================================
-// 2. SETUP SWAGGER (The Testing UI)
-// Swagger reads our code and automatically generates a beautiful
-// web page where we can click buttons to test our endpoints.
-// =========================================================
+// 5. API Controllers & Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 6. CORS Policy for Frontend/POS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+
 var app = builder.Build();
 
-// =========================================================
-// 3. THE MIDDLEWARE PIPELINE
-// This defines how HTTP requests flow through our app.
-// =========================================================
 if (app.Environment.IsDevelopment())
 {
-    // We only show the Swagger UI when we are coding locally
-    // (i.e. ASPNETCORE_ENVIRONMENT = "Development").
-    // We hide this in Production so hackers can't see all our endpoints!
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Automatically redirects any insecure HTTP requests to secure HTTPS
 app.UseHttpsRedirection();
-
-// Checks if the user has permission to access certain routes
+app.UseCors("AllowAll");
 app.UseAuthorization();
-
-// =========================================================
-// 4. ROUTING & EXECUTION
-// =========================================================
-// This command scans our app for [Route] attributes
-// (like the one on our MpesaController) and wires them up to the web.
 app.MapControllers();
 
-// Finally, start the server and listen for incoming requests!
+// Map SignalR Hub
+app.MapHub<PaymentHub>("/hubs/payment");
+
 app.Run();

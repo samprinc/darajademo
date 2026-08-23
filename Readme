@@ -30,15 +30,15 @@ step 3 or step 4.
 
 ---
 
-## 2. Sandbox vs. Production — what actually changes
+## 2. Production vs. Production — what actually changes
 
 Only **4 things** differ between testing and going live, and this project isolates
 all of them into config so you never have to touch the C# code to switch:
 
-| Setting | Sandbox (testing) | Production (real money) |
+| Setting | Production (testing) | Production (real money) |
 |---|---|---|
-| `BaseUrl` | `https://sandbox.safaricom.co.ke` | `https://api.safaricom.co.ke` |
-| `ConsumerKey` / `ConsumerSecret` | From a **Sandbox** app on the Daraja portal | From a **Go-Live** approved app |
+| `BaseUrl` | `https://Production.safaricom.co.ke` | `https://api.safaricom.co.ke` |
+| `ConsumerKey` / `ConsumerSecret` | From a **Production** app on the Daraja portal | From a **Go-Live** approved app |
 | `ShortCode` + `Passkey` | Safaricom's public test Paybill `174379` (same for everyone, safe to commit) | Your real Till/Paybill number + private passkey |
 | `TransactionType` | Usually `CustomerPayBillOnline` (test paybill) | `CustomerPayBillOnline` or `CustomerBuyGoodsOnline` depending on whether you own a Paybill or Till |
 
@@ -48,10 +48,10 @@ In this project:
 - `appsettings.Development.json` = **overrides** that apply automatically when you
   run the app locally with `dotnet run` (ASP.NET Core sets
   `ASPNETCORE_ENVIRONMENT=Development` for you in that case). This is what points
-  you at the sandbox without any code changes or manual flag-flipping.
+  you at the Production without any code changes or manual flag-flipping.
 - The controller reads everything through `IConfiguration` — there is exactly
   **one** `BaseUrl` variable driving every API call, so it's impossible to
-  accidentally mix a sandbox key with the production URL.
+  accidentally mix a Production key with the production URL.
 
 ---
 
@@ -61,7 +61,7 @@ In this project:
 DarajaDemo/
 ├── Program.cs                     # App startup, Swagger, HttpClient registration
 ├── appsettings.json                # Production config (defaults)
-├── appsettings.Development.json    # Sandbox config (overrides, local-only)
+├── appsettings.Development.json    # Production config (overrides, local-only)
 └── Controllers/
     └── MpesaController.cs          # token, stkpush, stkquery, callback endpoints
 ```
@@ -71,9 +71,9 @@ DarajaDemo/
 ## 4. Setting up your Daraja credentials
 
 1. Create an account at <https://developer.safaricom.co.ke>.
-2. Create a new **App** — this instantly gives you a Sandbox `ConsumerKey` and
+2. Create a new **App** — this instantly gives you a Production `ConsumerKey` and
    `ConsumerSecret`, plus access to the shared test Paybill `174379`.
-3. Put those sandbox values into `appsettings.Development.json`.
+3. Put those Production values into `appsettings.Development.json`.
 4. When you're ready to accept real payments, apply for **Go-Live** on the same
    portal (requires your registered Paybill/Till and business documents). Once
    approved, Safaricom gives you production keys — put those into
@@ -105,7 +105,7 @@ dotnet run
 ```
 
 This starts in `Development` mode by default, so it automatically targets the
-**sandbox**. Open the Swagger UI it prints in the console (something like
+**Production**. Open the Swagger UI it prints in the console (something like
 `https://localhost:5001/swagger`) to test each endpoint by clicking buttons —
 no Postman required.
 
@@ -130,7 +130,7 @@ Copy the `https://xxxx.ngrok-free.app` URL ngrok gives you, and put
    ```json
    { "phoneNumber": "0712345678", "amount": 1, "accountReference": "Test", "transactionDesc": "Test payment" }
    ```
-3. On the Safaricom sandbox, use one of their test phone numbers/PINs (see the
+3. On the Safaricom Production, use one of their test phone numbers/PINs (see the
    Daraja docs "Test Credentials" page) to simulate entering a PIN.
 4. Watch your console — the `MpesaCallback` endpoint logs the result once
    Safaricom calls it back.
@@ -141,7 +141,7 @@ Copy the `https://xxxx.ngrok-free.app` URL ngrok gives you, and put
 
 ## 6. What was fixed/added from the original snippet
 
-- **Sandbox/Production switch**: `BaseUrl`, keys, shortcode, passkey, and
+- **Production/Production switch**: `BaseUrl`, keys, shortcode, passkey, and
   `TransactionType` all now come from config instead of being hardcoded to
   production values.
 - **`IHttpClientFactory`** instead of `new HttpClient()` inside the controller —

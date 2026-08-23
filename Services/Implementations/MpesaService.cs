@@ -229,6 +229,13 @@ public class MpesaService : IMpesaService
 
     if (!response.IsSuccessStatusCode)
     {
+        // Treat "already registered" as a successful state so it doesn't crash
+        if (content.Contains("500.003.1001") || content.Contains("URLs are already registered"))
+        {
+            _logger.LogInformation("C2B URLs are already registered with Safaricom. Skipping overwrite.");
+            return;
+        }
+
         _logger.LogError("C2B URL Registration Failed: {Content}", content);
         throw new Exception($"C2B URL Registration failed: {content}");
     }

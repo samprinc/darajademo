@@ -22,6 +22,12 @@ public class MpesaController : ControllerBase
         return Ok(new { access_token = token });
     }
 
+    [HttpGet("health")]
+    public IActionResult HealthCheck()
+    {
+        return Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, environment = "Production" });
+    }
+
     [HttpPost("stkpush")]
     public async Task<IActionResult> InitiateStkPush([FromBody] StkPushRequestDto request)
     {

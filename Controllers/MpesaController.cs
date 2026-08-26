@@ -28,6 +28,18 @@ public class MpesaController : ControllerBase
         return Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, environment = "Production" });
     }
 
+    [HttpGet("transactions")]
+    public async Task<IActionResult> GetTransactions([FromServices] AppDbContext dbContext)
+    {
+        // Fetch the latest 100 transactions from Supabase
+        var transactions = await dbContext.MpesaTransactions
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(100)
+            .ToListAsync();
+        
+        return Ok(transactions);
+    }
+
     [HttpPost("stkpush")]
     public async Task<IActionResult> InitiateStkPush([FromBody] StkPushRequestDto request)
     {

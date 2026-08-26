@@ -73,19 +73,19 @@ public class MpesaService : IMpesaService
         var token = await GetAccessTokenAsync();
         var timestamp = GetEastAfricanTimestamp();
 
-        // ⚠️ For Buy Goods, the password MUST be generated using the StoreNumber
-        var password = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_settings.StoreNumber}{_settings.Passkey}{timestamp}"));
+        // STK Push is authorized by the head-office shortcode; C2B uses StoreNumber.
+        var password = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_settings.HeadOffice}{_settings.Passkey}{timestamp}"));
         var formattedPhone = NormalizePhoneNumber(request.PhoneNumber);
 
         var payload = new
         {
-            BusinessShortCode = _settings.StoreNumber,       // Must be the Store Number (9953725)
+            BusinessShortCode = _settings.HeadOffice,
             Password = password,
             Timestamp = timestamp,
             TransactionType = _settings.TransactionType,     // "CustomerBuyGoodsOnline"
             Amount = request.Amount,
             PartyA = formattedPhone,
-            PartyB = _settings.TillNumber,                   // Must be the Till Number (5923523)
+            PartyB = _settings.TillNumber,
             PhoneNumber = formattedPhone,
             CallBackURL = _settings.StkCallbackUrl,
             AccountReference = request.AccountReference,
@@ -214,7 +214,7 @@ public class MpesaService : IMpesaService
 
     var payload = new
     {
-        ShortCode = _settings.StoreNumber, // Or TillNumber depending on portal setup
+        ShortCode = _settings.StoreNumber,
         ResponseType = "Completed",
         ConfirmationURL = _settings.C2bConfirmationUrl,
         ValidationURL = _settings.C2bValidationUrl

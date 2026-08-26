@@ -6,8 +6,9 @@ public class DarajaSettings
     public string ConsumerKey { get; set; } = string.Empty;
     public string ConsumerSecret { get; set; } = string.Empty;
     
-    // Split into Store and Till
+    // C2B registration target and STK Push parent shortcode
     public string StoreNumber { get; set; } = string.Empty;
+    public string HeadOffice { get; set; } = string.Empty;
     public string TillNumber { get; set; } = string.Empty;
     
     public string Passkey { get; set; } = string.Empty;

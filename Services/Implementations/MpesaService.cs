@@ -258,4 +258,13 @@ public class MpesaService : IMpesaService
         if (digits.StartsWith("7") && digits.Length == 9) return "254" + digits;
         return digits;
     }
+
+    public async Task<IEnumerable<MpesaTransaction>> GetRecentTransactionsAsync()
+    {
+        // Fetches the latest 100 transactions, sorted by newest first
+        return await _dbContext.MpesaTransactions
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(100)
+            .ToListAsync();
+    }
 }

@@ -29,16 +29,11 @@ public class MpesaController : ControllerBase
     }
 
     [HttpGet("transactions")]
-    public async Task<IActionResult> GetTransactions([FromServices] AppDbContext dbContext)
-    {
-        // Fetch the latest 100 transactions from Supabase
-        var transactions = await dbContext.MpesaTransactions
-            .OrderByDescending(t => t.CreatedAt)
-            .Take(100)
-            .ToListAsync();
-        
-        return Ok(transactions);
-    }
+public async Task<IActionResult> GetTransactions()
+{
+    var transactions = await _mpesaService.GetRecentTransactionsAsync();
+    return Ok(transactions);
+}
 
     [HttpPost("stkpush")]
     public async Task<IActionResult> InitiateStkPush([FromBody] StkPushRequestDto request)
